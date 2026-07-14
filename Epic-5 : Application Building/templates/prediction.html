@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}Flood Risk Assessment Calculator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Quick Autofill Tool -->
+    <div class="col-12 mb-4">
+        <div class="glass-card">
+            <h5 class="fw-bold mb-3"><i class="fas fa-location-crosshairs me-2"></i> Location-Based Autofill (Simulated Weather Data)</h5>
+            <div class="row align-items-end g-3">
+                <div class="col-md-8">
+                    <label for="location-select" class="form-label">Select Target Meteorological Region</label>
+                    <select id="location-select" class="form-select">
+                        <option value="" selected disabled>Choose a location...</option>
+                        {% for city in cities %}
+                            <option value="{{ city }}">{{ city }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="button" id="load-weather-btn" class="btn btn-gradient-blue w-100">
+                        <i class="fas fa-cloud-arrow-down me-2"></i> Fetch Weather Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Parameter Inputs Form -->
+    <div class="col-12">
+        <div class="glass-card">
+            <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-sliders me-2"></i> Configure Environmental Parameters</h5>
+            <form id="prediction-form" method="POST">
+                <!-- Section 1: Location -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="region" class="form-label">Target Region Name</label>
+                        <input type="text" class="form-control" id="region" name="region" placeholder="e.g. Mumbai Suburbs" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="Previous_Flood_History" class="form-label">Previous Flood History in Area</label>
+                        <select class="form-select" id="Previous_Flood_History" name="Previous_Flood_History" required>
+                            <option value="" selected disabled>Select history...</option>
+                            <option value="1">Yes (History of Flooding)</option>
+                            <option value="0">No (No Known History)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Section 2: Rainfall -->
+                <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-cloud-showers-heavy me-2"></i> Rainfall Parameters (mm)</h6>
+                <div class="row mb-4 g-3">
+                    <div class="col-md-3">
+                        <label for="Annual_Rainfall" class="form-label">Annual Rainfall</label>
+                        <input type="number" step="0.1" min="0" max="10000" class="form-control" id="Annual_Rainfall" name="Annual_Rainfall" placeholder="e.g. 2200" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="Monsoon_Rainfall" class="form-label">Monsoon Rainfall</label>
+                        <input type="number" step="0.1" min="0" max="10000" class="form-control" id="Monsoon_Rainfall" name="Monsoon_Rainfall" placeholder="e.g. 1800" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="Winter_Rainfall" class="form-label">Winter Rainfall</label>
+                        <input type="number" step="0.1" min="0" max="10000" class="form-control" id="Winter_Rainfall" name="Winter_Rainfall" placeholder="e.g. 50" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="Summer_Rainfall" class="form-label">Summer Rainfall</label>
+                        <input type="number" step="0.1" min="0" max="10000" class="form-control" id="Summer_Rainfall" name="Summer_Rainfall" placeholder="e.g. 350" required>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Section 3: Weather Station Observations -->
+                <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-temperature-half me-2"></i> Atmospheric & Weather Observations</h6>
+                <div class="row mb-4 g-3">
+                    <div class="col-md-4">
+                        <label for="Temperature" class="form-label">Temperature (°C)</label>
+                        <input type="number" step="0.1" min="-50" max="60" class="form-control" id="Temperature" name="Temperature" placeholder="e.g. 28.5" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="Relative_Humidity" class="form-label">Relative Humidity (%)</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control" id="Relative_Humidity" name="Relative_Humidity" placeholder="e.g. 85" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="Cloud_Cover" class="form-label">Cloud Cover (octas)</label>
+                        <input type="number" step="0.1" min="0" max="10" class="form-control" id="Cloud_Cover" name="Cloud_Cover" placeholder="0-10" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="Cloud_Visibility" class="form-label">Visibility (km)</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control" id="Cloud_Visibility" name="Cloud_Visibility" placeholder="e.g. 6.5" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="Wind_Speed" class="form-label">Wind Speed (km/h)</label>
+                        <input type="number" step="0.1" min="0" max="200" class="form-control" id="Wind_Speed" name="Wind_Speed" placeholder="e.g. 18.0" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="Atmospheric_Pressure" class="form-label">Atmospheric Pressure (hPa)</label>
+                        <input type="number" step="0.1" min="900" max="1100" class="form-control" id="Atmospheric_Pressure" name="Atmospheric_Pressure" placeholder="e.g. 1008" required>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Section 4: Geological & Soil Indices -->
+                <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-mountain-sun me-2"></i> Geological & Soil Parameters</h6>
+                <div class="row mb-4 g-3">
+                    <div class="col-md-3">
+                        <label for="River_Water_Level" class="form-label">River Water Level (m)</label>
+                        <input type="number" step="0.01" min="0" max="50" class="form-control" id="River_Water_Level" name="River_Water_Level" placeholder="e.g. 3.2" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="Soil_Moisture" class="form-label">Soil Moisture (%)</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control" id="Soil_Moisture" name="Soil_Moisture" placeholder="e.g. 70" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="Drainage_Density" class="form-label">Drainage Density (km/km²)</label>
+                        <input type="number" step="0.01" min="0" max="15" class="form-control" id="Drainage_Density" name="Drainage_Density" placeholder="e.g. 2.5" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="Elevation" class="form-label">Elevation (m)</label>
+                        <input type="number" step="0.1" min="-100" max="9000" class="form-control" id="Elevation" name="Elevation" placeholder="e.g. 15" required>
+                    </div>
+                </div>
+
+                <div class="text-center mt-5">
+                    <button type="submit" class="btn btn-gradient-blue btn-lg px-5 py-3 fw-bold"><i class="fas fa-microchip me-2"></i> Analyze Flood Risk</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Loading State Section -->
+<div class="row my-4" id="loading-spinner" style="display: none;">
+    <div class="col-12 text-center py-5">
+        <div class="spinner-border text-primary" role="status" style="width: 3.5rem; height: 3.5rem;">
+            <span class="visually-hidden">Calculating...</span>
+        </div>
+        <h5 class="mt-4 fw-bold">Processing Parameters Through AI Engine...</h5>
+        <p class="text-secondary">Evaluating features against XGBoost, KNN, and Random Forest modules.</p>
+    </div>
+</div>
+
+<!-- Results Area -->
+<div class="row my-4" id="prediction-result" style="display: none;">
+    <div class="col-12">
+        <div class="glass-card">
+            <h4 class="fw-bold mb-4 text-center text-primary"><i class="fas fa-square-poll-vertical me-2"></i> Risk Assessment Outcome</h4>
+            
+            <div class="row align-items-center">
+                <!-- Circular Probability gauge -->
+                <div class="col-md-4 text-center mb-4 mb-md-0">
+                    <div id="prob-ring" class="result-prob-ring">
+                        <span id="res-probability" style="font-size: 2.2rem; font-weight: 800;">96.55%</span>
+                        <span style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Probability</span>
+                    </div>
+                    <h5 class="mt-3 fw-bold text-secondary" id="res-region">Selected Location</h5>
+                </div>
+                
+                <!-- Detailed Classifications -->
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <span class="fs-5 text-secondary">Identified Risk State:</span>
+                        <div class="mt-1">
+                            <span id="res-risk-level" class="risk-indicator fs-5">Very High Risk</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <span class="fs-5 text-secondary">Imminent Flood Classification:</span>
+                        <h3 id="res-outcome" class="mt-1">Flood Likely</h3>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <span class="fs-6 text-secondary d-block mb-1">Standard Operational Protocol:</span>
+                        <p class="lead" id="res-recommendation">Severe flood threat detected. Implement regional defense measures, close vulnerable floodgates, and prepare local residents for potential evacuation instructions.</p>
+                    </div>
+
+                    <!-- Dynamic Notification Response Info -->
+                    <div id="res-alert-notify" class="alert alert-danger mb-4" style="display: none; border-radius: 10px;">
+                        <!-- dynamic alert script populated -->
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-3">
+                        <a id="res-report-btn" href="#" class="btn btn-gradient-blue py-3 px-4 fw-bold">
+                            <i class="fas fa-file-pdf me-2"></i> Download PDF Report
+                        </a>
+                        <a href="{{ url_for('history') }}" class="btn btn-outline-secondary py-3 px-4 fw-bold">
+                            <i class="fas fa-history me-2"></i> View System History
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/prediction.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}System Dashboard Overview{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Welcome Header / Hero Card -->
+    <div class="col-12 mb-4">
+        <div class="glass-card p-5" style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.9), rgba(59, 130, 246, 0.9)); color: white;">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-5 fw-bold mb-3">AI-Powered Flood Prediction</h1>
+                    <p class="lead mb-4">Leveraging advanced ensemble machine learning algorithms (XGBoost, Random Forest, and KNN) to predict flood risks with high precision based on real-time atmospheric and physical variables.</p>
+                    <a href="{{ url_for('predict') }}" class="btn btn-light btn-lg fw-bold text-primary px-4 py-3"><i class="fas fa-play me-2"></i> Start Risk Analysis</a>
+                </div>
+                <div class="col-md-4 text-center d-none d-md-block">
+                    <i class="fas fa-house-flood-water fa-9x" style="opacity: 0.2;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Counter Grid -->
+<div class="row mb-4">
+    <div class="col-md-4 col-sm-6 mb-3">
+        <div class="glass-card text-center">
+            <div class="metric-icon"><i class="fas fa-server"></i></div>
+            <div class="metric-title">Total Assessed Records</div>
+            <div class="metric-value">{{ total_predictions }}</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-6 mb-3">
+        <div class="glass-card text-center">
+            <div class="metric-icon text-danger"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="metric-title">Active Danger Warnings</div>
+            <div class="metric-value text-danger">{{ high_risk_count }}</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-12 mb-3">
+        <div class="glass-card text-center">
+            <div class="metric-icon text-success"><i class="fas fa-shield-halved"></i></div>
+            <div class="metric-title">Verified Safe Conditions</div>
+            <div class="metric-value text-success">{{ safe_count }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- About System Card -->
+    <div class="col-lg-7 mb-4">
+        <div class="glass-card h-100">
+            <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-circle-info me-2"></i> Predictive Meteorological Engine</h5>
+            <p>Our machine learning models analyze 15 individual geological and meteorological factors (such as soil saturation, elevation indexes, drainage density, and multi-seasonal rainfall patterns) to calculate flood probability.</p>
+            <p>During the automated pipeline training phase, four distinct models are evaluated:</p>
+            <div class="row mt-3">
+                <div class="col-6 mb-2">
+                    <i class="fas fa-check-circle text-primary me-2"></i> <b>Decision Tree</b> (Baseline)
+                </div>
+                <div class="col-6 mb-2">
+                    <i class="fas fa-check-circle text-primary me-2"></i> <b>K-Nearest Neighbors</b>
+                </div>
+                <div class="col-6 mb-2">
+                    <i class="fas fa-check-circle text-primary me-2"></i> <b>Random Forest</b> (Ensemble)
+                </div>
+                <div class="col-6 mb-2">
+                    <i class="fas fa-check-circle text-primary me-2"></i> <b>XGBoost</b> (Target Model)
+                </div>
+            </div>
+            <p class="mt-3 text-secondary" style="font-size: 0.9rem;">The best model is automatically selected and serialized to power the prediction panel. Our current best XGBoost model achieves an accuracy of approximately <b>96.55%</b>.</p>
+        </div>
+    </div>
+
+    <!-- Active Flood Alerts / Recent High-Risk Predictions -->
+    <div class="col-lg-5 mb-4">
+        <div class="glass-card h-100">
+            <h5 class="fw-bold mb-4 text-danger"><i class="fas fa-bell me-2"></i> Recent Critical Flood Alerts</h5>
+            {% if recent_alerts %}
+                <div class="list-group list-group-flush bg-transparent">
+                    {% for alert in recent_alerts %}
+                        <div class="list-group-item bg-transparent border-0 px-0 py-3 d-flex justify-content-between align-items-center border-bottom">
+                            <div>
+                                <h6 class="mb-1 fw-bold text-primary">{{ alert.region }}</h6>
+                                <small class="text-secondary"><i class="far fa-calendar-alt me-1"></i> {{ alert.date.strftime('%Y-%m-%d %H:%M') }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="risk-indicator risk-Very font-weight-bold">{{ alert.risk_level }} Risk</span>
+                                <div class="small fw-bold mt-1 text-danger">{{ (alert.probability * 100)|round(2) }}% Prob</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-secondary">
+                    <i class="fas fa-circle-check fa-3x text-success mb-3"></i>
+                    <p class="m-0">No active high-risk flood conditions have been recently recorded in the database.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
